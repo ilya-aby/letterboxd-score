@@ -1,4 +1,5 @@
 import { useState } from "react";
+import posterPlaceholder from './assets/poster-placeholder.png';
 
 const AppStates = {
   DEFAULT: 'default',
@@ -41,10 +42,10 @@ export default function App() {
   const getMovieCards = () => {
     return movieData.map((movie) => (
       <div key={movie.filmId}>
-        <img src={movie.posterUrl || './src/assets/poster-placeholder.png'} 
+        <img src={movie.posterUrl || posterPlaceholder} 
           alt={movie.title} 
           className="w-32 h-auto" 
-          onError={(e) => e.target.src = './src/assets/poster-placeholder.png'} 
+          onError={(e) => e.target.src = posterPlaceholder} 
         />
       </div>
     ));
