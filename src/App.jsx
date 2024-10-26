@@ -53,16 +53,16 @@ export default function App() {
 
   return (
     <>
-      <div className="flex flex-col items-center justify-start w-10/12 mx-auto my-10 px-4 py-10 shadow-lg bg-gray-100 rounded-lg max-w-4xl min-h-[80vh]">
+      <div className="flex flex-col items-center justify-start w-full mx-auto px-4 py-10 shadow-lg bg-gray-100 rounded-lg max-w-4xl min-h-full sm:min-h-[80vh] sm:w-10/12 sm:my-10">
         <div className="flex items-center justify-center w-full gap-2">
           <input 
-            className="text-gray-700 w-1/3 p-2 rounded-md border-2 border-purple-300 shadow-md" 
+            className="text-gray-700 w-full p-2 rounded-md border-2 border-purple-300 shadow-md sm:w-1/3" 
             type="text" autoComplete="off" placeholder="Letterboxd username" 
             value={username} 
             onChange={(e) => setUsername(e.target.value)} 
           />
           <button 
-            className={`bg-purple-700 text-white px-6 py-2 rounded-md ${
+            className={`bg-purple-700 text-white px-6 py-2 rounded-md pt ${
               appState === AppStates.LOADING 
                 ? 'opacity-50 cursor-not-allowed'
               : 'hover:bg-purple-800'
