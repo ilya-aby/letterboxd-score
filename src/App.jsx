@@ -1,5 +1,5 @@
-import { useState } from "react";
-import posterPlaceholder from './assets/poster-placeholder.png';
+import { useState, useMemo } from "react";
+// import posterPlaceholder from './assets/poster-placeholder.png';
 import avatarPlaceholder from './assets/avatar-placeholder.webp';
 import vsImage from './assets/vs-image.png';
 
@@ -10,6 +10,16 @@ const AppStates = {
   COMPARE: 'compare'
 }
 
+const getUserStats = (userData) => {
+  if (!userData) return {};
+
+  const totalFilms = userData.movies.length;
+  const averageRating = userData.movies.reduce((sum, movie) => sum + movie.rating, 0) / totalFilms;
+  const filmsThisYear = userData.movies.filter(movie => new Date(movie.watchDate).getFullYear() === new Date().getFullYear()).length;
+
+  return { totalFilms, averageRating, filmsThisYear };
+}
+
 export default function App() {
 
   const [appState, setAppState] = useState(AppStates.SELECT_USERS);
@@ -17,6 +27,11 @@ export default function App() {
   const [user2Username, setUser2Username] = useState("");
   const [error, setError] = useState(null);
   const [userData, setUserData] = useState({ user1: null, user2: null });
+
+  const user1Stats = useMemo(() => getUserStats(userData.user1), [userData.user1]);
+  const user2Stats = useMemo(() => getUserStats(userData.user2), [userData.user2]);
+
+  const thisYear = new Date().getFullYear();
 
   const fetchData = async () => {
     setError(null);
@@ -115,6 +130,25 @@ export default function App() {
             {/* <div className="flex justify-center w-full gap-2 flex-wrap mt-6">
               {getMovieCards()}
             </div> */}
+            <table className="mt-8 max-w-lg border-collapse">
+              <tbody>
+                <tr className="border-b border-gray-200">
+                  <td className="py-2 text-center">{user1Stats.totalFilms || 0}</td>
+                  <th className="w-40 py-2 text-center font-medium text-gray-600">Total Films</th>
+                  <td className="py-2 text-center">{user2Stats.totalFilms || 0}</td>
+                </tr>
+                <tr className="border-b border-gray-200">
+                  <td className="py-2 text-center">{user1Stats.filmsThisYear || '-'}</td>
+                  <th className="w-1/5 py-2 text-center font-medium text-gray-600">{thisYear} Films</th>
+                  <td className="py-2 text-center">{user2Stats.filmsThisYear || '-'}</td>
+                </tr>
+                <tr className="border-b border-gray-200">
+                  <td className="py-2 text-center">{user1Stats.averageRating?.toFixed(1) || '-'}</td>
+                  <th className="w-1/5 py-2 text-center font-medium text-gray-600">Avg. Rating</th>
+                  <td className="py-2 text-center">{user2Stats.averageRating?.toFixed(1) || '-'}</td>
+                </tr>
+              </tbody>
+            </table>
           </>
         }
       </div>

@@ -143,7 +143,11 @@ export async function handler(event) {
         statusCode: response.status,
         headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
+            'Access-Control-Allow-Origin': '*',
+            // Allow Netlify to cache responses
+            'Netlify-CDN-Cache-Control': `public, s-maxage=${60*60*24}, stale-while-revalidate=${60*60*48}, durable`,
+            // Optional cache tags for selective purging
+            'Netlify-Cache-Tag': 'letterboxd-diary'
         },
         body: JSON.stringify({ movies, name, profilePicUrl }),
     };
