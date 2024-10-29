@@ -5,6 +5,21 @@ function processMovieDataFromHtml(html) {
   const $ = cheerio.load(html);
   const movies = [];
 
+  // Extract user's name from title and clean it up
+  // Format is "&lrm;Bob's film diary • Letterboxd"
+  const pageTitle = $('title').text().trim();
+  let name = pageTitle.split('’')[0].trim();
+  name = name.substring(1);
+
+  // Extract profile picture URL and modify for larger size
+  // If they haven't set a profile picture, we return null and the app can use a placeholder
+  let profilePicUrl = $('.profile-mini-person .avatar img').attr('src');
+  if (profilePicUrl && profilePicUrl.includes('-0-48-0-48-crop')) {
+    profilePicUrl = profilePicUrl.replace('-0-48-0-48-crop', '-0-220-0-220-crop');
+  } else {
+    profilePicUrl = null;
+  }
+
   $('tr.diary-entry-row').each((_, row) => {
     const $row = $(row);
 
@@ -61,10 +76,7 @@ function processMovieDataFromHtml(html) {
     movies.push({ filmId, title, posterUrl, test_poster_url, watchDate, rating, isLiked });
   });
 
-  // For debugging purposes
-  console.log(movies);
-
-  return movies;
+  return { movies, name, profilePicUrl };
 }
 
 // Helper function to strip the year from the slug to get the correct poster URL
@@ -125,7 +137,7 @@ export async function handler(event) {
       });
 
       const data = await response.text();
-      const movies = processMovieDataFromHtml(data);
+      const { movies, name, profilePicUrl } = processMovieDataFromHtml(data);
 
       return {
         statusCode: response.status,
@@ -133,7 +145,7 @@ export async function handler(event) {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*'
         },
-        body: JSON.stringify({ movies }),
+        body: JSON.stringify({ movies, name, profilePicUrl }),
     };
   } catch (e) {
       return {
