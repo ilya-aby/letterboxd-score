@@ -1,17 +1,43 @@
 import * as cheerio from 'cheerio';
 import UserAgent from 'user-agents';
 
-function processMovieDataFromHtml(html) {
+// Synthetic headers to mimic a real browser for Letterboxd scraping
+const userAgent = new UserAgent({ deviceCategory: 'desktop' });
+const LETTERBOXD_HEADERS = {
+  'Accept': '*/*',
+  'Accept-Encoding': 'gzip, deflate, br, zstd',
+  'Accept-Language': 'en-US,en;q=0.5',
+  'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+  'Priority': 'u=1, i',
+  'Referer': 'https://letterboxd.com/',
+  'sec-ch-ua': '"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"',
+  'sec-ch-ua-mobile': '?0',
+  'sec-ch-ua-platform': '"macOS"',
+  'User-Agent': userAgent.toString(),
+  'Cache-Control': 'no-cache',
+  'Pragma': 'no-cache',
+  'Connection': 'keep-alive',
+  'Upgrade-Insecure-Requests': '1'
+}
+
+// Helper function to extract page count from Letterboxd HTML
+function getPageCountFromHtml(html) {
   const $ = cheerio.load(html);
-  const movies = [];
+  const pageCount = $('.paginate-pages li.paginate-page').length;
+  return pageCount;
+}
+
+// Helper function to extract user data from Letterboxd HTML
+function getUserDataFromHtml(html) {
+  const $ = cheerio.load(html);
 
   // Extract user's name from title and clean it up
-  // Format is "&lrm;Bob's film diary • Letterboxd"
+  // Format is: "&lrm;Bob's film diary • Letterboxd"
   const pageTitle = $('title').text().trim();
   let name = pageTitle.split('’')[0].trim();
   name = name.substring(1);
 
-  // Extract profile picture URL and modify for larger size
+  // Extract profile picture URL and modify URL to get a larger size
   // If they haven't set a profile picture, we return null and the app can use a placeholder
   let profilePicUrl = $('.profile-mini-person .avatar img').attr('src');
   if (profilePicUrl && profilePicUrl.includes('-0-48-0-48-crop')) {
@@ -19,6 +45,14 @@ function processMovieDataFromHtml(html) {
   } else {
     profilePicUrl = null;
   }
+
+  return { name, profilePicUrl };
+}
+
+// Helper function to extract structured movie data from Letterboxd HTML
+function getMovieDataFromHtml(html) {
+  const $ = cheerio.load(html);
+  const movies = [];
 
   $('tr.diary-entry-row').each((_, row) => {
     const $row = $(row);
@@ -39,13 +73,6 @@ function processMovieDataFromHtml(html) {
       const idDigits = filmId.split('');
       const path = idDigits.join('/');
       posterUrl = `https://a.ltrbxd.com/resized/film-poster/${path}/${filmId}-${filmSlug}-0-300-0-450-crop.jpg`;
-    }
-
-    // Attempt to grab the img src property inside the film div
-    let test_poster_url = null;
-    const imgSrc = $filmDiv.find('img').attr('src');
-    if (imgSrc) {
-      test_poster_url = imgSrc;
     }
 
     // Extract and reconstruct the watch date from the URL
@@ -73,10 +100,10 @@ function processMovieDataFromHtml(html) {
     const isLiked = $row.find('td.td-like .icon-liked').length > 0;
 
     // Construct the movie object
-    movies.push({ filmId, title, posterUrl, test_poster_url, watchDate, rating, isLiked });
+    movies.push({ filmId, title, posterUrl, watchDate, rating, isLiked });
   });
 
-  return { movies, name, profilePicUrl };
+  return { movies };
 }
 
 // Helper function to strip the year from the slug to get the correct poster URL
@@ -114,33 +141,40 @@ export async function handler(event) {
       };
   }
 
-  const userAgent = new UserAgent({ deviceCategory: 'desktop' });
-
   try {
-      const response = await fetch(url, {
-          headers: {
-              'Accept': '*/*',
-              'Accept-Encoding': 'gzip, deflate, br, zstd',
-              'Accept-Language': 'en-US,en;q=0.5',
-              'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-              'Priority': 'u=1, i',
-              'Referer': 'https://letterboxd.com/',
-              'sec-ch-ua': '"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"',
-              'sec-ch-ua-mobile': '?0',
-              'sec-ch-ua-platform': '"macOS"',
-              'User-Agent': userAgent.toString(),
-              'Cache-Control': 'no-cache',
-              'Pragma': 'no-cache',
-              'Connection': 'keep-alive',
-              'Upgrade-Insecure-Requests': '1'
-          }
+      const firstPageResponse = await fetch(url, {
+          headers: LETTERBOXD_HEADERS
       });
 
-      const data = await response.text();
-      const { movies, name, profilePicUrl } = processMovieDataFromHtml(data);
+      const firstPageHtml = await firstPageResponse.text();
+
+      const pageCount = getPageCountFromHtml(firstPageHtml);
+      const { name, profilePicUrl } = getUserDataFromHtml(firstPageHtml);
+      const { movies } = getMovieDataFromHtml(firstPageHtml);
+
+      // Prepare URLs for paginated requests
+      const pageUrls = [];
+      for (let i = 2; i <= pageCount; i++) {
+        pageUrls.push(`${url}page/${i}/`);
+      }
+
+      // Fetch all additional pages concurrently
+      const paginatedMovies = await Promise.all(
+        pageUrls.map(pageUrl => 
+          fetch(pageUrl, { headers: LETTERBOXD_HEADERS })
+            .then(res => res.text())
+            .then(html => getMovieDataFromHtml(html))
+        )
+      );
+
+      // Combine all movies from all pages
+      const allMovies = [
+        ...movies,
+        ...paginatedMovies.flatMap(pageData => pageData.movies)
+      ];
 
       return {
-        statusCode: response.status,
+        statusCode: firstPageResponse.status,
         headers: {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
@@ -149,7 +183,7 @@ export async function handler(event) {
             // Optional cache tags for selective purging
             'Netlify-Cache-Tag': 'letterboxd-diary'
         },
-        body: JSON.stringify({ movies, name, profilePicUrl }),
+        body: JSON.stringify({ movies: allMovies, name, profilePicUrl }),
     };
   } catch (e) {
       return {

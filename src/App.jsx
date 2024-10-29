@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Loader2 } from 'lucide-react';
 // import posterPlaceholder from './assets/poster-placeholder.png';
 import avatarPlaceholder from './assets/avatar-placeholder.webp';
 import vsImage from './assets/vs-image.png';
@@ -113,7 +114,9 @@ export default function App() {
             </button>
         </div>
         }
+
         {appState === AppStates.ERROR && <p className="text-red-500 text-sm mt-2 font-bold">{error}</p>}
+        {appState === AppStates.LOADING && <Loader2 className="mt-4w-12 h-12 animate-spin text-purple-700" />}
         {appState === AppStates.COMPARE && 
           <>
             <div className="grid grid-cols-[1fr_auto_1fr] items-center w-full gap-4 max-w-lg">
@@ -143,9 +146,9 @@ export default function App() {
                   <td className="py-2 text-center">{user2Stats.filmsThisYear || '-'}</td>
                 </tr>
                 <tr className="border-b border-gray-200">
-                  <td className="py-2 text-center">{user1Stats.averageRating?.toFixed(1) || '-'}</td>
+                  <td className="py-2 text-center">{user1Stats.averageRating ? (user1Stats.averageRating / 2).toFixed(1) : '-'}</td>
                   <th className="w-1/5 py-2 text-center font-medium text-gray-600">Avg. Rating</th>
-                  <td className="py-2 text-center">{user2Stats.averageRating?.toFixed(1) || '-'}</td>
+                  <td className="py-2 text-center">{user2Stats.averageRating ? (user2Stats.averageRating / 2).toFixed(1) : '-'}</td>
                 </tr>
               </tbody>
             </table>
