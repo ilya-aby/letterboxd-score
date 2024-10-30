@@ -1,4 +1,3 @@
-
 // Compute aggregates for a user from their movie data
 export function getUserStats(userData) {
   if (!userData) return {};
@@ -10,11 +9,11 @@ export function getUserStats(userData) {
   return { totalFilms, averageRating, filmsThisYear };
 }
 
-// Compute the biggest rating disagreements between two users
+// Compute the biggest rating disagreements between two users & fetch LLM-generated diss messages
 // Note that Letterboxd stores ratings on a scale of 1-10 but displays them as 0-5 stars
 // It's not possible to rate a movie 0 stars on Letterboxd - so 0.5 stars (rating=1) is the lowest possible rating
 // Some users don't rate movies but use isLiked, so we treat isLiked=true as a 5-star rating in that case
-export function getRatingDisagreements(user1, user2) {
+export async function getRatingDisagreements(user1, user2) {
   if (!user1 || !user2) return [];
 
   // Get most recent entry for each movie per user, dropping entries with no rating/isLiked
@@ -66,6 +65,32 @@ export function getRatingDisagreements(user1, user2) {
     }
   });
 
-  // Sort by absolute difference
-  return disagreements.sort((a, b) => b.ratingDifference - a.ratingDifference);
+  // Sort by absolute difference and limit to 10 items BEFORE fetching diss messages
+  const topDisagreements = disagreements
+    .sort((a, b) => b.ratingDifference - a.ratingDifference)
+    .slice(0, 10);
+
+  // Fetch diss messages for each disagreement
+  for (const disagreement of topDisagreements) {
+    const response = await fetch('/.netlify/functions/llm-proxy', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        user1Rating: typeof disagreement.user1Rating === 'number' ? (disagreement.user1Rating/2).toFixed(1) : '5.0',
+        user2Rating: typeof disagreement.user2Rating === 'number' ? (disagreement.user2Rating/2).toFixed(1) : '5.0',
+        movieTitle: disagreement.title
+      })
+    });
+
+    const data = await response.json();
+    console.log(data);
+
+    disagreement.user1DissMessage = data.user1Response;
+    disagreement.user2DissMessage = data.user2Response;
+  }
+
+  // Sort by absolute difference and limit to 10 items
+  return topDisagreements;
 }

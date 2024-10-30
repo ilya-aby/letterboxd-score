@@ -20,10 +20,10 @@ export default function App() {
   const [user2Username, setUser2Username] = useState("");
   const [error, setError] = useState(null);
   const [userData, setUserData] = useState({ user1: null, user2: null });
+  const [ratingDisagreements, setRatingDisagreements] = useState([]);
 
   const user1Stats = useMemo(() => getUserStats(userData.user1), [userData.user1]);
   const user2Stats = useMemo(() => getUserStats(userData.user2), [userData.user2]);
-  const ratingDisagreements = useMemo(() => getRatingDisagreements(userData.user1, userData.user2), [userData.user1, userData.user2]);
 
   const thisYear = new Date().getFullYear();
 
@@ -38,12 +38,6 @@ export default function App() {
     setAppState(AppStates.LOADING);
     
     try {
-      fetch('/.netlify/functions/llm-proxy?data=test')
-        .then(response => response.json())
-        .then(data => console.log(data))
-        .catch(error => console.error('Error:', error));
-
-
       // Note that we use the netlify function to avoid CORS issues
       // The proxy will handle pagination and return all movies for each user
       const [user1Response, user2Response] = await Promise.all([
@@ -69,6 +63,8 @@ export default function App() {
       if (!user2Data.profilePicUrl) user2Data.profilePicUrl = avatarPlaceholder;
 
       setUserData({ user1: user1Data, user2: user2Data });
+      const disagreements = await getRatingDisagreements(user1Data, user2Data);
+      setRatingDisagreements(disagreements);
       setAppState(AppStates.COMPARE);
     } catch (error) {
       setError(error.message);
@@ -87,7 +83,7 @@ export default function App() {
     return ratingDisagreements.map((disagreement) => (
       <div key={disagreement.filmId} className="mt-4 flex items-center justify-center gap-4">
         <MessageBubble 
-          message={`I'm talking smack about your ${disagreement.title} rating.`} 
+          message={disagreement.user1DissMessage} 
           isYours={false} 
           bgColor="bg-gray-100" 
         />
@@ -99,7 +95,7 @@ export default function App() {
         />
         <div className="w-20 text-left">{getRatingSymbol(disagreement.user2Rating)}</div>
         <MessageBubble 
-          message={`I'm talking smack about your ${disagreement.title} rating.`} 
+          message={disagreement.user2DissMessage} 
           isYours={true} 
           bgColor="bg-gray-100" 
         />

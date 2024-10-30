@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
 import process from 'process';
+import { movieQuipPrompt } from '../../prompts/movieQuipPrompt.js';
 
 export async function handler(event) {
   dotenv.config();
@@ -14,16 +15,16 @@ export async function handler(event) {
     };
   }
 
-  if (!event.queryStringParameters || !event.queryStringParameters.data) {
+  if (!event.body) {
     return {
       statusCode: 400,
       body: JSON.stringify({ error: "No data provided to LLM proxy" }),
     };
   }
 
-  const { data } = event.queryStringParameters;
+  const { user1Rating, user2Rating, movieTitle } = JSON.parse(event.body);
 
-  console.log('Server received data:', data);
+  console.log('Server received data:', { user1Rating, user2Rating, movieTitle });
 
   const openai = new OpenAI({
     apiKey: OPENAI_API_KEY,
@@ -31,12 +32,22 @@ export async function handler(event) {
 
   try {
     const completion = await openai.chat.completions.create({
-      messages: [{ 
-        role: "user", 
-        content: "Generate a short, funny movie-related insult about someone who rated Barbie 1/5 stars. Keep it under 50 characters." 
-      }],
+      messages: [
+        {
+          role: "system",
+          content: movieQuipPrompt
+        },
+        {
+          role: "user",
+          content: `Movie: "${movieTitle}"\nUser1 rating: ${user1Rating}/5\nUser2 rating: ${user2Rating}/5`
+        }
+      ],
+      response_format: { "type": "json_object" },
       model: "gpt-4o-mini"
     });
+
+    // Parse the response content into an object
+    const responseObject = JSON.parse(completion.choices[0].message.content);
 
     return {
       statusCode: 200,
@@ -45,7 +56,8 @@ export async function handler(event) {
         'Access-Control-Allow-Origin': '*'
       },
       body: JSON.stringify({
-        message: completion.choices[0].message.content,
+        user1Response: responseObject.user1Response,
+        user2Response: responseObject.user2Response,
         debug: 'API call successful'
       })
     };
