@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { Loader2 } from 'lucide-react';
-// import posterPlaceholder from './assets/poster-placeholder.png';
+import { getUserStats, getRatingDisagreements } from './movieAnalytics';
+import MessageBubble from './components/MessageBubble';
+import posterPlaceholder from './assets/poster-placeholder.png';
 import avatarPlaceholder from './assets/avatar-placeholder.webp';
 import vsImage from './assets/vs-image.png';
 
@@ -9,16 +11,6 @@ const AppStates = {
   LOADING: 'loading',
   ERROR: 'error',
   COMPARE: 'compare'
-}
-
-const getUserStats = (userData) => {
-  if (!userData) return {};
-
-  const totalFilms = userData.movies.length;
-  const averageRating = userData.movies.reduce((sum, movie) => sum + movie.rating, 0) / totalFilms;
-  const filmsThisYear = userData.movies.filter(movie => new Date(movie.watchDate).getFullYear() === new Date().getFullYear()).length;
-
-  return { totalFilms, averageRating, filmsThisYear };
 }
 
 export default function App() {
@@ -31,21 +23,34 @@ export default function App() {
 
   const user1Stats = useMemo(() => getUserStats(userData.user1), [userData.user1]);
   const user2Stats = useMemo(() => getUserStats(userData.user2), [userData.user2]);
+  const ratingDisagreements = useMemo(() => getRatingDisagreements(userData.user1, userData.user2), [userData.user1, userData.user2]);
 
   const thisYear = new Date().getFullYear();
 
   const fetchData = async () => {
+    if (!user1Username || !user2Username) {
+      setError("Please enter both usernames");
+      setAppState(AppStates.ERROR);
+      return;
+    }
+
     setError(null);
     setAppState(AppStates.LOADING);
     
     try {
-      // Fetch both users simultaneously
+      fetch('/.netlify/functions/llm-proxy?data=test')
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(error => console.error('Error:', error));
+
+
+      // Note that we use the netlify function to avoid CORS issues
+      // The proxy will handle pagination and return all movies for each user
       const [user1Response, user2Response] = await Promise.all([
-        fetch(`/.netlify/functions/netlify-proxy?url=https://letterboxd.com/${user1Username}/films/diary/`),
-        fetch(`/.netlify/functions/netlify-proxy?url=https://letterboxd.com/${user2Username}/films/diary/`)
+        fetch(`/.netlify/functions/letterboxd-proxy?url=https://letterboxd.com/${user1Username}/films/diary/`),
+        fetch(`/.netlify/functions/letterboxd-proxy?url=https://letterboxd.com/${user2Username}/films/diary/`)
       ]);
 
-      // Check if both responses are ok
       if (!user1Response.ok || !user2Response.ok) {
         throw new Error(
           !user1Response.ok 
@@ -71,17 +76,36 @@ export default function App() {
     }
   }
 
-  // const getMovieCards = () => {
-  //   return userData.movies.map((movie) => (
-  //     <div key={movie.filmId}>
-  //       <img src={movie.posterUrl || posterPlaceholder} 
-  //         alt={movie.title} 
-  //         className="w-32 h-auto" 
-  //         onError={(e) => e.target.src = posterPlaceholder} 
-  //       />
-  //     </div>
-  //   ));
-  // }
+  const getRatingSymbol = (rating) => {
+    if (rating === '❤️') return '❤️';
+    const fullStars = Math.floor(rating / 2);
+    const halfStar = rating % 2 ? '½' : '';
+    return '⭐️'.repeat(fullStars) + halfStar;
+  }
+
+  const renderDisagreements = () => {
+    return ratingDisagreements.map((disagreement) => (
+      <div key={disagreement.filmId} className="mt-4 flex items-center justify-center gap-4">
+        <MessageBubble 
+          message={`I'm talking smack about your ${disagreement.title} rating.`} 
+          isYours={false} 
+          bgColor="bg-gray-100" 
+        />
+        <div className="w-20 text-right">{getRatingSymbol(disagreement.user1Rating)}</div>
+        <img src={disagreement.posterUrl || posterPlaceholder} 
+          alt={disagreement.title} 
+          className="w-32 h-auto" 
+          onError={(e) => e.target.src = posterPlaceholder} 
+        />
+        <div className="w-20 text-left">{getRatingSymbol(disagreement.user2Rating)}</div>
+        <MessageBubble 
+          message={`I'm talking smack about your ${disagreement.title} rating.`} 
+          isYours={true} 
+          bgColor="bg-gray-100" 
+        />
+      </div>
+    ));
+  }
 
   return (
     <>
@@ -130,15 +154,13 @@ export default function App() {
                 <h1 className="text-xl font-bold">{userData.user2.name}</h1>
               </div>
             </div>
-            {/* <div className="flex justify-center w-full gap-2 flex-wrap mt-6">
-              {getMovieCards()}
-            </div> */}
+            {renderDisagreements()}
             <table className="mt-8 max-w-lg border-collapse">
               <tbody>
                 <tr className="border-b border-gray-200">
-                  <td className="py-2 text-center">{user1Stats.totalFilms || 0}</td>
+                  <td className="w-32 py-2 text-center">{user1Stats.totalFilms || 0}</td>
                   <th className="w-40 py-2 text-center font-medium text-gray-600">Total Films</th>
-                  <td className="py-2 text-center">{user2Stats.totalFilms || 0}</td>
+                  <td className="w-32 py-2 text-center">{user2Stats.totalFilms || 0}</td>
                 </tr>
                 <tr className="border-b border-gray-200">
                   <td className="py-2 text-center">{user1Stats.filmsThisYear || '-'}</td>
@@ -146,9 +168,9 @@ export default function App() {
                   <td className="py-2 text-center">{user2Stats.filmsThisYear || '-'}</td>
                 </tr>
                 <tr className="border-b border-gray-200">
-                  <td className="py-2 text-center">{user1Stats.averageRating ? (user1Stats.averageRating / 2).toFixed(1) : '-'}</td>
+                  <td className="py-2 text-center">{user1Stats.averageRating ? (user1Stats.averageRating / 2).toFixed(1) : '-'} ⭐️</td>
                   <th className="w-1/5 py-2 text-center font-medium text-gray-600">Avg. Rating</th>
-                  <td className="py-2 text-center">{user2Stats.averageRating ? (user2Stats.averageRating / 2).toFixed(1) : '-'}</td>
+                  <td className="py-2 text-center">{user2Stats.averageRating ? (user2Stats.averageRating / 2).toFixed(1) : '-'} ⭐️</td>
                 </tr>
               </tbody>
             </table>

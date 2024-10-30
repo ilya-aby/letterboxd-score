@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "cheerio": "^1.0.0",
+    "dotenv": "^16.4.5",
     "lucide-react": "^0.454.0",
     "netlify-cli": "^17.37.1",
+    "openai": "^4.68.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "user-agents": "^1.1.338"
