@@ -11,7 +11,7 @@ export default function MessageBubble({ message, isYours, bgColor }) {
           : 'bg-gray-200 text-black'
       }`}
     >
-      <p className="z-10 relative break-words">{message}</p>
+      <p className="z-10 relative break-words text-sm sm:text-base">{message}</p>
       {/* Tail part 1 - creates the colored portion */}
       <div
         className={`absolute bottom-0 h-5 w-5 ${

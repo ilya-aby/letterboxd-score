@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Loader2 } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { getUserStats, getRatingDisagreements } from './movieAnalytics';
 import MessageBubble from './components/MessageBubble';
 import posterPlaceholder from './assets/poster-placeholder.png';
@@ -109,7 +110,7 @@ export default function App() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-blue-500 via-purple-400 to-pink-300 sm:py-10">
-      <div className="flex flex-col items-center justify-center w-full mx-auto px-4 py-10 shadow-xl bg-gray-900 text-gray-100 max-w-4xl min-h-screen sm:rounded-xl sm:min-h-[80vh]">
+      <div className="relative flex flex-col items-center justify-center w-full mx-auto px-4 py-10 shadow-xl bg-gray-900 text-gray-100 max-w-4xl min-h-screen sm:rounded-xl sm:min-h-[80vh]">
         {appState !== AppStates.COMPARE && 
           <div className="flex flex-col items-center justify-center w-full gap-4">
             <div className="flex flex-col items-center justify-center gap-2 w-2/3 sm:w-full sm:flex-row">
@@ -143,6 +144,13 @@ export default function App() {
         {appState === AppStates.LOADING && <Loader2 className="mt-4 w-12 h-12 animate-spin text-purple-700" />}
         {appState === AppStates.COMPARE && 
           <>
+            <button
+              className="absolute top-4 left-4 p-2 text-purple-700 hover:text-purple-500 rounded-full"
+              onClick={() => setAppState(AppStates.SELECT_USERS)}
+              aria-label="Go back to user selection"
+            >
+              <ChevronLeft className="w-8 h-8" />
+            </button>
             <div className="grid grid-cols-[1fr_auto_1fr] items-center w-full gap-4 max-w-lg">
               <div className="flex flex-col items-center justify-center gap-2">
                 <img src={userData.user1.profilePicUrl} alt={userData.user1.name} className="w-20 h-auto rounded-full border-2 border-purple-700" />
