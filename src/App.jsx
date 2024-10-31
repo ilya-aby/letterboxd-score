@@ -90,12 +90,13 @@ export default function App() {
             bgColor="bg-gray-900" 
           />
         </div>
-        <a href={disagreement.letterboxdUrl} target="_blank" rel="noopener noreferrer">
+        <a href={disagreement.letterboxdUrl} target="_blank" rel="noopener noreferrer"
+          className={`${index % 2 === 0 ? 'self-start' : 'self-end'} 
+            order-first sm:self-center sm:order-none`}
+        >
           <img src={disagreement.posterUrl || posterPlaceholder} 
             alt={disagreement.title} 
-            className={`order-first w-32 h-auto rounded-md border border-gray-700 
-              ${index % 2 === 0 ? 'self-start' : 'self-end'} 
-              sm:w-40 sm:self-center sm:order-none
+            className={`w-32 h-auto rounded-md border border-gray-700 sm:w-40
               transition-all duration-300 ease-in-out
               hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/20`} 
             onError={(e) => e.target.src = posterPlaceholder} 
@@ -171,7 +172,6 @@ export default function App() {
         }
 
         {appState === AppStates.ERROR && <p className="text-red-500 text-sm mt-2 font-bold">{error}</p>}
-        {/* {appState === AppStates.LOADING && <Loader2 className="mt-4 w-12 h-12 animate-spin text-purple-700" />} */}
         {appState === AppStates.COMPARE && 
           <>
             <button
