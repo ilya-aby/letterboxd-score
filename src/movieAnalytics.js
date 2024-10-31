@@ -2,8 +2,11 @@
 export function getUserStats(userData) {
   if (!userData) return {};
 
+  const moviesWithRatings = userData.movies.filter(movie => movie.rating);
   const totalFilms = userData.movies.length;
-  const averageRating = userData.movies.reduce((sum, movie) => sum + movie.rating, 0) / totalFilms;
+  const averageRating = moviesWithRatings.length > 0 
+    ? moviesWithRatings.reduce((sum, movie) => sum + movie.rating, 0) / moviesWithRatings.length 
+    : 0;
 
   return { totalFilms, averageRating };
 }

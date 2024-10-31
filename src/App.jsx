@@ -78,10 +78,11 @@ export default function App() {
     return '⭐️'.repeat(fullStars) + halfStar;
   }
 
+  // Responsive placement - on mobile, makes it look like an iMessage conversation
   const renderDisagreements = () => {
-    return ratingDisagreements.map((disagreement) => (
-      <div key={disagreement.filmId} className="mt-5 flex items-start justify-center gap-4">
-        <div className="flex flex-col items-end gap-2">
+    return ratingDisagreements.map((disagreement, index) => (
+      <div key={disagreement.filmId} className="flex flex-col items-start justify-center gap-2 w-full mt-10 sm:gap-4 sm:flex-row">
+        <div className="flex flex-col items-end self-start sm:self-auto">
           <div className="w-20 text-right text-sm sm:text-base">{getRatingSymbol(disagreement.user1Rating)}</div>
           <MessageBubble 
             message={disagreement.user1DissMessage} 
@@ -91,10 +92,10 @@ export default function App() {
         </div>
         <img src={disagreement.posterUrl || posterPlaceholder} 
           alt={disagreement.title} 
-          className="w-32 h-auto rounded-sm border border-gray-700" 
+          className={`order-first w-32 h-auto rounded-md border border-gray-700 ${index % 2 === 0 ? 'self-start' : 'self-end'} sm:w-48 sm:self-center sm:order-none`} 
           onError={(e) => e.target.src = posterPlaceholder} 
         />
-        <div className="flex flex-col items-start gap-2">
+        <div className="flex flex-col items-start self-end sm:self-auto">
           <div className="w-20 text-left text-sm sm:text-base">{getRatingSymbol(disagreement.user2Rating)}</div>
           <MessageBubble 
             message={disagreement.user2DissMessage} 
