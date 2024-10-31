@@ -113,40 +113,65 @@ export default function App() {
     ));
   }
 
+  // Add this new function to handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    fetchData();
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-blue-500 via-purple-400 to-pink-300 sm:py-10">
       <div className="relative flex flex-col items-center justify-center w-full mx-auto px-4 py-10 shadow-xl bg-gray-900 text-gray-100 max-w-4xl min-h-screen sm:rounded-xl sm:min-h-[80vh]">
         {appState !== AppStates.COMPARE && 
           <div className="flex flex-col items-center justify-center w-full gap-4">
-            <div className="flex flex-col items-center justify-center gap-2 w-2/3 sm:w-full sm:flex-row">
-              <input 
-                className="bg-gray-800 text-gray-200 w-full p-2 rounded-md border-2 border-purple-300 shadow-md sm:w-1/3" 
-                type="text" autoComplete="off" placeholder="Letterboxd username" 
-                value={user1Username} 
-                onChange={(e) => setUser1Username(e.target.value)} 
-              />
-              <input 
-                className="bg-gray-800 text-gray-200 w-full p-2 rounded-md border-2 border-purple-300 shadow-md sm:w-1/3" 
-                type="text" autoComplete="off" placeholder="Letterboxd username" 
-                value={user2Username} 
-                onChange={(e) => setUser2Username(e.target.value)} 
-              />
-            </div>
-            <button 
-              className={`bg-purple-700 text-white px-6 py-2 rounded-md pt ${
-                appState === AppStates.LOADING 
-                ? 'opacity-50 cursor-not-allowed'
-              : 'hover:bg-purple-800'
-            }`}
-              onClick={fetchData}
-            >
-              Fetch
-            </button>
-        </div>
+            <form onSubmit={handleSubmit} className="flex flex-col items-center justify-center gap-4 w-full">
+              <div className="flex flex-col items-center justify-center gap-2 w-2/3 sm:w-full sm:flex-row">
+                <input 
+                  className="bg-gray-800 text-gray-200 w-full p-2 rounded-md border-2 border-purple-300 shadow-md sm:w-1/3" 
+                  type="text" 
+                  autoComplete="off"
+                  data-lpignore="true"
+                  data-1p-ignore="true"
+                  placeholder="Letterboxd username" 
+                  value={user1Username} 
+                  onChange={(e) => setUser1Username(e.target.value)} 
+                  required
+                  aria-label="First user's Letterboxd username"
+                />
+                <input 
+                  className="bg-gray-800 text-gray-200 w-full p-2 rounded-md border-2 border-purple-300 shadow-md sm:w-1/3" 
+                  type="text" 
+                  autoComplete="off" 
+                  data-lpignore="true"
+                  data-1p-ignore="true"
+                  placeholder="Letterboxd username" 
+                  value={user2Username} 
+                  onChange={(e) => setUser2Username(e.target.value)} 
+                  required
+                  aria-label="Second user's Letterboxd username"
+                />
+              </div>
+              <button 
+                type="submit"
+                className={`bg-purple-700 text-white px-6 py-2 rounded-md min-w-28 ${
+                  appState === AppStates.LOADING 
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:bg-purple-800'
+                }`}
+                disabled={appState === AppStates.LOADING}
+              >
+                {appState === AppStates.LOADING ? (
+                  <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                ) : (
+                  'Compare'
+                )}
+              </button>
+            </form>
+          </div>
         }
 
         {appState === AppStates.ERROR && <p className="text-red-500 text-sm mt-2 font-bold">{error}</p>}
-        {appState === AppStates.LOADING && <Loader2 className="mt-4 w-12 h-12 animate-spin text-purple-700" />}
+        {/* {appState === AppStates.LOADING && <Loader2 className="mt-4 w-12 h-12 animate-spin text-purple-700" />} */}
         {appState === AppStates.COMPARE && 
           <>
             <button
