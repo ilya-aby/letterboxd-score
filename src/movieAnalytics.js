@@ -70,6 +70,8 @@ export async function getRatingDisagreements(user1, user2) {
     .sort((a, b) => b.ratingDifference - a.ratingDifference)
     .slice(0, 10);
 
+  console.log('topDisagreements', topDisagreements);
+
   // Fetch diss messages for each disagreement
   for (const disagreement of topDisagreements) {
     const response = await fetch('/.netlify/functions/llm-proxy', {

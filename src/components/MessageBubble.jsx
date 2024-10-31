@@ -1,4 +1,6 @@
-
+// Recreates iMessage bubble styling, based on https://codepen.io/swards/pen/gxQmbj
+// Primary limitation is that the bubble needs the background color from its parent element
+// due to the way the tail cutout is created.
 
 export default function MessageBubble({ message, isYours, bgColor }) {
   return (
@@ -9,7 +11,7 @@ export default function MessageBubble({ message, isYours, bgColor }) {
           : 'bg-gray-200 text-black'
       }`}
     >
-      <p className="z-10 relative">{message}</p>
+      <p className="z-10 relative break-words">{message}</p>
       {/* Tail part 1 - creates the colored portion */}
       <div
         className={`absolute bottom-0 h-5 w-5 ${
