@@ -60,6 +60,7 @@ export async function getRatingDisagreements(user1, user2) {
         filmId: movie1.filmId,
         title: movie1.title,
         posterUrl: movie1.posterUrl,
+        letterboxdUrl: movie1.letterboxdUrl,
         user1Rating: movie1.rating || (movie1.isLiked ? '❤️' : null),
         user2Rating: movie2.rating || (movie2.isLiked ? '❤️' : null),
         ratingDifference: Math.abs(difference)

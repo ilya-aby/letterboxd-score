@@ -90,11 +90,17 @@ export default function App() {
             bgColor="bg-gray-900" 
           />
         </div>
-        <img src={disagreement.posterUrl || posterPlaceholder} 
-          alt={disagreement.title} 
-          className={`order-first w-32 h-auto rounded-md border border-gray-700 ${index % 2 === 0 ? 'self-start' : 'self-end'} sm:w-48 sm:self-center sm:order-none`} 
-          onError={(e) => e.target.src = posterPlaceholder} 
-        />
+        <a href={disagreement.letterboxdUrl} target="_blank" rel="noopener noreferrer">
+          <img src={disagreement.posterUrl || posterPlaceholder} 
+            alt={disagreement.title} 
+            className={`order-first w-32 h-auto rounded-md border border-gray-700 
+              ${index % 2 === 0 ? 'self-start' : 'self-end'} 
+              sm:w-40 sm:self-center sm:order-none
+              transition-all duration-300 ease-in-out
+              hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/20`} 
+            onError={(e) => e.target.src = posterPlaceholder} 
+          />
+        </a>
         <div className="flex flex-col items-start self-end sm:self-auto">
           <div className="w-20 text-left text-sm sm:text-base">{getRatingSymbol(disagreement.user2Rating)}</div>
           <MessageBubble 

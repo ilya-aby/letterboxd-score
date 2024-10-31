@@ -41,10 +41,17 @@ function getUserDataFromHtml(html) {
   name = name.substring(1);
 
   // Extract profile picture URL and modify URL to get a larger size
-  // If they haven't set a profile picture, we return null and the app can use a placeholder
   let profilePicUrl = $('.profile-mini-person .avatar img').attr('src');
-  if (profilePicUrl && profilePicUrl.includes('-0-48-0-48-crop')) {
-    profilePicUrl = profilePicUrl.replace('-0-48-0-48-crop', '-0-220-0-220-crop');
+  if (profilePicUrl) {
+    if (profilePicUrl.includes('-0-48-0-48-crop')) {
+      // Handle Letterboxd native avatar format
+      profilePicUrl = profilePicUrl.replace('-0-48-0-48-crop', '-0-220-0-220-crop');
+    } else if (profilePicUrl.includes('gravatar.com')) {
+      // Handle Gravatar URL format
+      profilePicUrl = profilePicUrl.replace('size=48', 'size=220');
+    } else {
+      profilePicUrl = null;
+    }
   } else {
     profilePicUrl = null;
   }
@@ -67,6 +74,10 @@ function getMovieDataFromHtml(html) {
     const filmId = $filmDiv.attr('data-film-id') ? $filmDiv.attr('data-film-id').trim() : null;
     const filmSlug = $filmDiv.attr('data-film-slug') ? stripYearFromSlug($filmDiv.attr('data-film-slug').trim()) : null;
     const title = $filmDiv.find('img').attr('alt')?.trim() || null;
+
+    // Extract the letterboxd URL
+    const filmPath = $filmDiv.attr('data-target-link');
+    const letterboxdUrl = filmPath ? `https://letterboxd.com${filmPath}` : null;
 
     // Construct the poster URL slug from the filmId
     let posterUrl = null;
@@ -91,7 +102,7 @@ function getMovieDataFromHtml(html) {
     const isLiked = $row.find('.poster-viewingdata .like.icon-liked').length > 0;
 
     // Construct the movie object
-    movies.push({ filmId, title, posterUrl, rating, isLiked });
+    movies.push({ filmId, title, posterUrl, rating, isLiked, letterboxdUrl });
   });
 
   return { movies };
