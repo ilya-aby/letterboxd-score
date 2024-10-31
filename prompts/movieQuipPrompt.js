@@ -6,7 +6,8 @@ You'll create two funny comments, one for each user. They'll be shown in text me
 as if they were sent in a conversation. So make sure they're concise and to the point.
 If you know the movie, you can make a joke or reference it. Otherwise, just make a funny comment.
 You don't have to reference the exact ratings, but you can if you want to.
-Don't be cringe or corny or overuse puns. It should feel like friends giving each other shit.
+DO be funny and clever. Do NOT be corny. It should feel like friends giving each other shit. 
+Do NOT use the format "[Movie name]? More like [Pun on movie name]!" - that's corny.
 
 You must return a JSON object with exactly two keys:
 - "user1Response": user1's witty or snarky comment about the movie

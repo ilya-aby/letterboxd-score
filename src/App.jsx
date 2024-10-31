@@ -26,8 +26,6 @@ export default function App() {
   const user1Stats = useMemo(() => getUserStats(userData.user1), [userData.user1]);
   const user2Stats = useMemo(() => getUserStats(userData.user2), [userData.user2]);
 
-  const thisYear = new Date().getFullYear();
-
   const fetchData = async () => {
     if (!user1Username || !user2Username) {
       setError("Please enter both usernames");
@@ -42,8 +40,8 @@ export default function App() {
       // Note that we use the netlify function to avoid CORS issues
       // The proxy will handle pagination and return all movies for each user
       const [user1Response, user2Response] = await Promise.all([
-        fetch(`/.netlify/functions/letterboxd-proxy?url=https://letterboxd.com/${user1Username}/films/diary/`),
-        fetch(`/.netlify/functions/letterboxd-proxy?url=https://letterboxd.com/${user2Username}/films/diary/`)
+        fetch(`/.netlify/functions/letterboxd-proxy?url=https://letterboxd.com/${user1Username}/films/`),
+        fetch(`/.netlify/functions/letterboxd-proxy?url=https://letterboxd.com/${user2Username}/films/`)
       ]);
 
       if (!user1Response.ok || !user2Response.ok) {
@@ -82,9 +80,9 @@ export default function App() {
 
   const renderDisagreements = () => {
     return ratingDisagreements.map((disagreement) => (
-      <div key={disagreement.filmId} className="mt-4 flex items-start justify-center gap-4">
+      <div key={disagreement.filmId} className="mt-5 flex items-start justify-center gap-4">
         <div className="flex flex-col items-end gap-2">
-          <div className="w-20 text-right">{getRatingSymbol(disagreement.user1Rating)}</div>
+          <div className="w-20 text-right text-sm sm:text-base">{getRatingSymbol(disagreement.user1Rating)}</div>
           <MessageBubble 
             message={disagreement.user1DissMessage} 
             isYours={false} 
@@ -93,11 +91,11 @@ export default function App() {
         </div>
         <img src={disagreement.posterUrl || posterPlaceholder} 
           alt={disagreement.title} 
-          className="w-32 h-auto" 
+          className="w-32 h-auto rounded-sm border border-gray-700" 
           onError={(e) => e.target.src = posterPlaceholder} 
         />
         <div className="flex flex-col items-start gap-2">
-          <div className="w-20 text-left">{getRatingSymbol(disagreement.user2Rating)}</div>
+          <div className="w-20 text-left text-sm sm:text-base">{getRatingSymbol(disagreement.user2Rating)}</div>
           <MessageBubble 
             message={disagreement.user2DissMessage} 
             isYours={true} 
@@ -145,7 +143,7 @@ export default function App() {
         {appState === AppStates.COMPARE && 
           <>
             <button
-              className="absolute top-4 left-4 p-2 text-purple-700 hover:text-purple-500 rounded-full"
+              className="absolute top-0 left-0 p-2 text-purple-700 hover:text-purple-500 rounded-full sm:top-4 sm:left-4"
               onClick={() => setAppState(AppStates.SELECT_USERS)}
               aria-label="Go back to user selection"
             >
@@ -169,11 +167,6 @@ export default function App() {
                   <td className="w-32 py-2 text-center">{user1Stats.totalFilms || 0}</td>
                   <th className="w-40 py-2 text-center font-medium text-gray-400">Total Films</th>
                   <td className="w-32 py-2 text-center">{user2Stats.totalFilms || 0}</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="py-2 text-center">{user1Stats.filmsThisYear || '-'}</td>
-                  <th className="w-1/5 py-2 text-center font-medium text-gray-400">{thisYear} Films</th>
-                  <td className="py-2 text-center">{user2Stats.filmsThisYear || '-'}</td>
                 </tr>
                 <tr className="border-b border-gray-200">
                   <td className="py-2 text-center">{user1Stats.averageRating ? (user1Stats.averageRating / 2).toFixed(1) : '-'} ⭐️</td>

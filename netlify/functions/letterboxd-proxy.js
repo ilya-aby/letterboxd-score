@@ -23,7 +23,10 @@ const LETTERBOXD_HEADERS = {
 // Helper function to extract page count from Letterboxd HTML
 function getPageCountFromHtml(html) {
   const $ = cheerio.load(html);
-  const pageCount = $('.paginate-pages li.paginate-page').length;
+  // Find the last page number by looking at the last .paginate-page that contains a number
+  const lastPageElement = $('.paginate-pages li.paginate-page:last-child a');
+  const pageCount = lastPageElement.length ? parseInt(lastPageElement.text(), 10) : 1;
+  console.log('pageCount', pageCount);
   return pageCount;
 }
 
@@ -54,18 +57,16 @@ function getMovieDataFromHtml(html) {
   const $ = cheerio.load(html);
   const movies = [];
 
-  $('tr.diary-entry-row').each((_, row) => {
+  $('li.poster-container').each((_, row) => {
     const $row = $(row);
 
     // Extract the film div where data attributes are stored
-    const $filmDiv = $row.find('td.td-film-details div[data-film-id]');
+    const $filmDiv = $row.find('div.film-poster');
 
     // Extract the film ID and film slug
     const filmId = $filmDiv.attr('data-film-id') ? $filmDiv.attr('data-film-id').trim() : null;
     const filmSlug = $filmDiv.attr('data-film-slug') ? stripYearFromSlug($filmDiv.attr('data-film-slug').trim()) : null;
-
-    // Extract the movie title from the h3 element
-    const title = $row.find('td.td-film-details h3.headline-3 a').text().trim();
+    const title = $filmDiv.find('img').attr('alt')?.trim() || null;
 
     // Construct the poster URL slug from the filmId
     let posterUrl = null;
@@ -75,32 +76,22 @@ function getMovieDataFromHtml(html) {
       posterUrl = `https://a.ltrbxd.com/resized/film-poster/${path}/${filmId}-${filmSlug}-0-300-0-450-crop.jpg`;
     }
 
-    // Extract and reconstruct the watch date from the URL
-    let watchDate = null;
-    const dateUrl = $row.find('td.td-day a').attr('href');
-    if (dateUrl) {
-      const dateParts = dateUrl.split('/').filter(Boolean);
-      const forIndex = dateParts.indexOf('for');
-      if (forIndex !== -1 && dateParts.length > forIndex + 3) {
-        const year = dateParts[forIndex + 1];
-        const month = dateParts[forIndex + 2];
-        const day = dateParts[forIndex + 3];
-        watchDate = new Date(`${year}-${month}-${day}`);
+    // Extract rating from the class. It will look like "rated-5"
+    let rating = null;
+    const ratingSpan = $row.find('.poster-viewingdata .rating');
+
+    if (ratingSpan.length) {
+      const ratingClass = ratingSpan.attr('class').match(/rated-(\d+)/);
+      if (ratingClass && ratingClass[1]) {
+        rating = parseInt(ratingClass[1], 10);
       }
     }
 
-    // Extract the star rating
-    let rating = null;
-    const ratingValue = $row.find('td.td-rating input.rateit-field').attr('value');
-    if (ratingValue !== undefined) {
-      rating = parseInt(ratingValue, 10);
-    }
-
-    // Determine if the movie is liked
-    const isLiked = $row.find('td.td-like .icon-liked').length > 0;
+    // Check for liked status by looking for icon-liked class
+    const isLiked = $row.find('.poster-viewingdata .like.icon-liked').length > 0;
 
     // Construct the movie object
-    movies.push({ filmId, title, posterUrl, watchDate, rating, isLiked });
+    movies.push({ filmId, title, posterUrl, rating, isLiked });
   });
 
   return { movies };

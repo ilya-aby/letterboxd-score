@@ -4,9 +4,8 @@ export function getUserStats(userData) {
 
   const totalFilms = userData.movies.length;
   const averageRating = userData.movies.reduce((sum, movie) => sum + movie.rating, 0) / totalFilms;
-  const filmsThisYear = userData.movies.filter(movie => new Date(movie.watchDate).getFullYear() === new Date().getFullYear()).length;
 
-  return { totalFilms, averageRating, filmsThisYear };
+  return { totalFilms, averageRating };
 }
 
 // Compute the biggest rating disagreements between two users & fetch LLM-generated diss messages
