@@ -22,6 +22,7 @@ export default [
       react,
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
+      tailwindcss,
     },
     rules: {
       ...js.configs.recommended.rules,

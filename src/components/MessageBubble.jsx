@@ -6,15 +6,13 @@ export default function MessageBubble({ message, isYours, bgColor }) {
   return (
     <div
       className={`relative inline-block p-2.5 rounded-2xl max-w-52 ${
-        isYours
-          ? 'bg-blue-600 text-white'
-          : 'bg-gray-200 text-black'
+        isYours ? 'bg-blue-600 text-white' : 'bg-gray-200 text-black'
       }`}
     >
-      <p className="z-10 relative break-words text-sm sm:text-base">{message}</p>
+      <p className='z-10 relative break-words text-sm sm:text-base'>{message}</p>
       {/* Tail part 1 - creates the colored portion */}
       <div
-        className={`absolute bottom-0 h-5 w-5 ${
+        className={`absolute bottom-0 size-5 ${
           isYours
             ? 'right-[-8px] rounded-bl-[15px] bg-blue-600'
             : 'left-[-7px] rounded-br-[15px] bg-gray-200'
@@ -23,9 +21,7 @@ export default function MessageBubble({ message, isYours, bgColor }) {
       {/* Tail part 2 - creates the cutout */}
       <div
         className={`${bgColor} absolute bottom-0 h-5 w-2.5 ${
-          isYours
-            ? 'right-[-10px] rounded-bl-[10px]'
-            : 'left-[-10px] rounded-br-[10px]'
+          isYours ? 'right-[-10px] rounded-bl-[10px]' : 'left-[-10px] rounded-br-[10px]'
         }`}
       />
     </div>

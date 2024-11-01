@@ -2,14 +2,16 @@
 export function getUserStats(userData) {
   if (!userData) return {};
 
-  const moviesWithRatings = userData.movies.filter(movie => movie.rating);
+  const moviesWithRatings = userData.movies.filter((movie) => movie.rating);
   const totalFilms = userData.movies.length;
-  const averageRating = moviesWithRatings.length > 0 
-    ? moviesWithRatings.reduce((sum, movie) => sum + movie.rating, 0) / moviesWithRatings.length 
-    : 0;
+  const averageRating =
+    moviesWithRatings.length > 0
+      ? moviesWithRatings.reduce((sum, movie) => sum + movie.rating, 0) / moviesWithRatings.length
+      : 0;
 
   return { totalFilms, averageRating };
 }
+``;
 
 // Compute the biggest rating disagreements between two users & fetch LLM-generated diss messages
 // Note that Letterboxd stores ratings on a scale of 1-10 but displays them as 0-5 stars
@@ -19,20 +21,19 @@ export async function getRatingDisagreements(user1, user2) {
   if (!user1 || !user2) return [];
 
   // Filter movies to only those with ratings/isLiked
-  const getValidMovies = (movies) => 
-    movies.filter(movie => movie.rating || movie.isLiked);
+  const getValidMovies = (movies) => movies.filter((movie) => movie.rating || movie.isLiked);
 
   const user1Movies = getValidMovies(user1.movies);
   const user2Movies = getValidMovies(user2.movies);
 
   // Find movies with disagreements
   const disagreements = [];
-  user1Movies.forEach(movie1 => {
-    const movie2 = user2Movies.find(m => m.filmId === movie1.filmId);
+  user1Movies.forEach((movie1) => {
+    const movie2 = user2Movies.find((m) => m.filmId === movie1.filmId);
     if (!movie2) return;
 
     let difference = null;
-    
+
     // Handle regular ratings comparison
     if (movie1.rating && movie2.rating) {
       difference = movie1.rating - movie2.rating;
@@ -40,8 +41,7 @@ export async function getRatingDisagreements(user1, user2) {
     // Handle isLiked=true vs low rating special case
     else if (movie1.isLiked && movie2.rating && movie2.rating <= 5) {
       difference = 10 - movie2.rating; // Treat isLiked=true as a 5-star rating
-    }
-    else if (movie2.isLiked && movie1.rating && movie1.rating <= 5) {
+    } else if (movie2.isLiked && movie1.rating && movie1.rating <= 5) {
       difference = movie1.rating - 10; // Treat isLiked=true as a 5-star rating
     }
 
@@ -54,7 +54,7 @@ export async function getRatingDisagreements(user1, user2) {
         letterboxdUrl: movie1.letterboxdUrl,
         user1Rating: movie1.rating || (movie1.isLiked ? '❤️' : null),
         user2Rating: movie2.rating || (movie2.isLiked ? '❤️' : null),
-        ratingDifference: Math.abs(difference)
+        ratingDifference: Math.abs(difference),
       });
     }
   });
@@ -71,13 +71,19 @@ export async function getRatingDisagreements(user1, user2) {
     const response = await fetch('/.netlify/functions/llm-proxy', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        user1Rating: typeof disagreement.user1Rating === 'number' ? (disagreement.user1Rating/2).toFixed(1) : '5.0',
-        user2Rating: typeof disagreement.user2Rating === 'number' ? (disagreement.user2Rating/2).toFixed(1) : '5.0',
-        movieTitle: disagreement.title
-      })
+        user1Rating:
+          typeof disagreement.user1Rating === 'number'
+            ? (disagreement.user1Rating / 2).toFixed(1)
+            : '5.0',
+        user2Rating:
+          typeof disagreement.user2Rating === 'number'
+            ? (disagreement.user2Rating / 2).toFixed(1)
+            : '5.0',
+        movieTitle: disagreement.title,
+      }),
     });
 
     const data = await response.json();
