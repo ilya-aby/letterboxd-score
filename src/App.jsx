@@ -6,8 +6,8 @@ import MessageBubble from './components/MessageBubble';
 import posterPlaceholder from './assets/poster-placeholder.png';
 import avatarPlaceholder from './assets/avatar-placeholder.webp';
 import vsImage from './assets/vs-image.png';
-import bannerImage from './assets/showdown-banner.png';
-import bannerImageMobile from './assets/showdown-banner-vertical.png';
+import bannerImage from './assets/showdown-banner.webp';
+import bannerImageMobile from './assets/showdown-banner-vertical.webp';
 
 const AppStates = {
   SELECT_USERS: 'select-users',
