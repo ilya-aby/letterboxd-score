@@ -18,21 +18,12 @@ export function getUserStats(userData) {
 export async function getRatingDisagreements(user1, user2) {
   if (!user1 || !user2) return [];
 
-  // Get most recent entry for each movie per user, dropping entries with no rating/isLiked
-  const getLatestUserMovies = (movies) => {
-    const movieMap = new Map();
-    movies.forEach(movie => {
-      if (!movie.rating && !movie.isLiked) return; // Skip if no rating or isLiked
-      if (!movieMap.has(movie.filmId) || 
-          new Date(movie.watchDate) > new Date(movieMap.get(movie.filmId).watchDate)) {
-        movieMap.set(movie.filmId, movie);
-      }
-    });
-    return Array.from(movieMap.values());
-  };
+  // Filter movies to only those with ratings/isLiked
+  const getValidMovies = (movies) => 
+    movies.filter(movie => movie.rating || movie.isLiked);
 
-  const user1Movies = getLatestUserMovies(user1.movies);
-  const user2Movies = getLatestUserMovies(user2.movies);
+  const user1Movies = getValidMovies(user1.movies);
+  const user2Movies = getValidMovies(user2.movies);
 
   // Find movies with disagreements
   const disagreements = [];

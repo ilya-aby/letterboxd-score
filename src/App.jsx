@@ -83,7 +83,7 @@ export default function App() {
     return ratingDisagreements.map((disagreement, index) => (
       <div key={disagreement.filmId} className="flex flex-col items-start justify-center gap-2 w-full mt-10 sm:gap-4 sm:flex-row">
         <div className="flex flex-col items-end self-start sm:self-auto">
-          <div className="w-20 text-right text-sm sm:text-base">{getRatingSymbol(disagreement.user1Rating)}</div>
+          <div className="text-sm sm:text-base">{getRatingSymbol(disagreement.user1Rating)}</div>
           <MessageBubble 
             message={disagreement.user1DissMessage} 
             isYours={false} 
@@ -103,7 +103,7 @@ export default function App() {
           />
         </a>
         <div className="flex flex-col items-start self-end sm:self-auto">
-          <div className="w-20 text-left text-sm sm:text-base">{getRatingSymbol(disagreement.user2Rating)}</div>
+          <div className="text-sm sm:text-base">{getRatingSymbol(disagreement.user2Rating)}</div>
           <MessageBubble 
             message={disagreement.user2DissMessage} 
             isYours={true} 
