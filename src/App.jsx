@@ -6,6 +6,8 @@ import MessageBubble from './components/MessageBubble';
 import posterPlaceholder from './assets/poster-placeholder.png';
 import avatarPlaceholder from './assets/avatar-placeholder.webp';
 import vsImage from './assets/vs-image.png';
+import bannerImage from './assets/showdown-banner.png';
+import bannerImageMobile from './assets/showdown-banner-vertical.png';
 
 const AppStates = {
   SELECT_USERS: 'select-users',
@@ -131,56 +133,69 @@ export default function App() {
 
   return (
     <div className='flex items-center justify-center min-h-screen bg-gradient-to-b from-blue-500 via-purple-400 to-pink-300 sm:py-10'>
-      <div className='relative flex flex-col items-center justify-center w-full mx-auto px-4 py-10 shadow-xl bg-gray-900 text-gray-100 max-w-4xl min-h-screen sm:rounded-xl sm:min-h-[80vh]'>
+      <div className='relative flex flex-col items-center justify-center w-full mx-auto px-4 py-10 shadow-xl bg-gray-900 text-gray-100 max-w-4xl min-h-screen sm:mx-4 sm:rounded-xl sm:min-h-[80vh] sm:overflow-hidden'>
         {appState !== AppStates.COMPARE && (
-          <div className='flex flex-col items-center justify-center w-full gap-4'>
-            <form
-              onSubmit={handleSubmit}
-              className='flex flex-col items-center justify-center gap-4 w-full'
-            >
-              <div className='flex flex-col items-center justify-center gap-2 w-2/3 sm:w-full sm:flex-row'>
-                <input
-                  className='bg-gray-800 text-gray-200 w-full p-2 rounded-md border-2 border-purple-300 shadow-md sm:w-1/3'
-                  type='text'
-                  autoComplete='off'
-                  data-lpignore='true'
-                  data-1p-ignore='true'
-                  placeholder='Letterboxd username'
-                  value={user1Username}
-                  onChange={(e) => setUser1Username(e.target.value)}
-                  required
-                  aria-label="First user's Letterboxd username"
-                />
-                <input
-                  className='bg-gray-800 text-gray-200 w-full p-2 rounded-md border-2 border-purple-300 shadow-md sm:w-1/3'
-                  type='text'
-                  autoComplete='off'
-                  data-lpignore='true'
-                  data-1p-ignore='true'
-                  placeholder='Letterboxd username'
-                  value={user2Username}
-                  onChange={(e) => setUser2Username(e.target.value)}
-                  required
-                  aria-label="Second user's Letterboxd username"
-                />
-              </div>
-              <button
-                type='submit'
-                className={`bg-purple-700 text-white px-6 py-2 rounded-md min-w-28 ${
-                  appState === AppStates.LOADING
-                    ? 'opacity-50 cursor-not-allowed'
-                    : 'hover:bg-purple-800'
-                }`}
-                disabled={appState === AppStates.LOADING}
+          <>
+            <p className='text-gray-100 font-bold text-2xl mb-4 absolute top-8 left-8 z-10'>Letterboxd VS.</p>
+            <img
+              src={bannerImage}
+              alt='Letterboxd VS.'
+              className='w-full h-auto hidden sm:block sm:shadow-xl sm:rounded-xl sm:absolute sm:inset-0 sm:w-full sm:h-full sm:object-cover sm:opacity-60'
+            />
+            <img
+              src={bannerImageMobile}
+              alt='Letterboxd VS.'
+              className='w-full h-screen inset-0 absolute object-cover opacity-70 block sm:hidden'
+            />
+            <div className='flex flex-col items-center justify-center w-full gap-4 z-10'>
+              <form
+                onSubmit={handleSubmit}
+                className='flex flex-col items-center justify-center gap-4 w-full'
               >
-                {appState === AppStates.LOADING ? (
-                  <Loader2 className='size-5 animate-spin mx-auto' />
-                ) : (
-                  'Compare'
-                )}
-              </button>
-            </form>
-          </div>
+                <div className='flex flex-col items-center justify-center gap-2 w-2/3 sm:w-full sm:flex-row'>
+                  <input
+                    className='bg-gray-800 text-gray-200 w-full p-2 rounded-md border-2 border-purple-300 shadow-md sm:w-1/3'
+                    type='text'
+                    autoComplete='off'
+                    data-lpignore='true'
+                    data-1p-ignore='true'
+                    placeholder='Letterboxd username'
+                    value={user1Username}
+                    onChange={(e) => setUser1Username(e.target.value)}
+                    required
+                    aria-label="First user's Letterboxd username"
+                  />
+                  <input
+                    className='bg-gray-800 text-gray-200 w-full p-2 rounded-md border-2 border-purple-300 shadow-md sm:w-1/3'
+                    type='text'
+                    autoComplete='off'
+                    data-lpignore='true'
+                    data-1p-ignore='true'
+                    placeholder='Letterboxd username'
+                    value={user2Username}
+                    onChange={(e) => setUser2Username(e.target.value)}
+                    required
+                    aria-label="Second user's Letterboxd username"
+                  />
+                </div>
+                <button
+                  type='submit'
+                  className={`bg-purple-700 text-white px-6 py-2 rounded-md min-w-28 shadow-md ${
+                    appState === AppStates.LOADING
+                      ? 'opacity-50 cursor-not-allowed'
+                      : 'hover:bg-purple-800'
+                  }`}
+                  disabled={appState === AppStates.LOADING}
+                >
+                  {appState === AppStates.LOADING ? (
+                    <Loader2 className='size-5 animate-spin mx-auto' />
+                  ) : (
+                    'Face Off'
+                  )}
+                </button>
+              </form>
+            </div>
+          </>
         )}
 
         {appState === AppStates.ERROR && (
