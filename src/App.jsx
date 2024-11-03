@@ -140,12 +140,12 @@ export default function App() {
             <img
               src={bannerImage}
               alt='Letterboxd VS.'
-              className='w-full h-auto hidden sm:block sm:shadow-xl sm:rounded-xl sm:absolute sm:inset-0 sm:w-full sm:h-full sm:object-cover sm:opacity-60'
+              className='w-full h-auto hidden aspect-[16/9] sm:block sm:shadow-xl sm:rounded-xl sm:absolute sm:inset-0 sm:w-full sm:h-full sm:object-cover sm:opacity-60'
             />
             <img
               src={bannerImageMobile}
               alt='Letterboxd VS.'
-              className='w-full h-screen inset-0 absolute object-cover opacity-70 block sm:hidden'
+              className='w-full h-screen inset-0 absolute aspect-[16/9] object-cover opacity-70 block sm:hidden'
             />
             <div className='flex flex-col items-center justify-center w-full gap-4 z-10'>
               <form
