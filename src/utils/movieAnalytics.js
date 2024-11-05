@@ -11,7 +11,6 @@ export function getUserStats(userData) {
 
   return { totalFilms, averageRating };
 }
-``;
 
 // Compute the biggest rating disagreements between two users & fetch LLM-generated diss messages
 // Note that Letterboxd stores ratings on a scale of 1-10 but displays them as 0-5 stars
@@ -66,33 +65,28 @@ export async function getRatingDisagreements(user1, user2) {
 
   console.log('topDisagreements', topDisagreements);
 
-  // Fetch diss messages for each disagreement
-  for (const disagreement of topDisagreements) {
-    const response = await fetch('/.netlify/functions/llm-proxy', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        user1Rating:
-          typeof disagreement.user1Rating === 'number'
-            ? (disagreement.user1Rating / 2).toFixed(1)
-            : '5.0',
-        user2Rating:
-          typeof disagreement.user2Rating === 'number'
-            ? (disagreement.user2Rating / 2).toFixed(1)
-            : '5.0',
-        movieTitle: disagreement.title,
-      }),
-    });
+  // Instead of fetching messages one by one, prepare the data and make a single call
+  const moviesForLLM = topDisagreements.map((d) => ({
+    movieTitle: d.title,
+    user1Rating: typeof d.user1Rating === 'number' ? (d.user1Rating / 2).toFixed(1) : '5.0',
+    user2Rating: typeof d.user2Rating === 'number' ? (d.user2Rating / 2).toFixed(1) : '5.0',
+  }));
 
-    const data = await response.json();
-    console.log(data);
+  const response = await fetch('/.netlify/functions/llm-proxy', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ movies: moviesForLLM }),
+  });
 
-    disagreement.user1DissMessage = data.user1Response;
-    disagreement.user2DissMessage = data.user2Response;
-  }
+  const quipsArray = await response.json();
 
-  // Sort by absolute difference and limit to 10 items
+  // Match the responses back to the disagreements
+  quipsArray.forEach((quip, index) => {
+    topDisagreements[index].user1DissMessage = quip.user1Response;
+    topDisagreements[index].user2DissMessage = quip.user2Response;
+  });
+
   return topDisagreements;
 }

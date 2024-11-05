@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import process from 'process';
 import { movieQuipPrompt } from '../../prompts/movieQuipPrompt.js';
 
-const LLM_MODEL = 'anthropic/claude-3-5-haiku';
+const LLM_MODEL = 'google/gemini-pro-1.5';
 const SITE_URL = 'https://letterboxdvs.com';
 const SITE_NAME = 'Letterboxd VS.';
 
@@ -26,9 +26,9 @@ export async function handler(event) {
     };
   }
 
-  const { user1Rating, user2Rating, movieTitle } = JSON.parse(event.body);
+  const { movies } = JSON.parse(event.body);
 
-  console.log('Server received data:', { user1Rating, user2Rating, movieTitle });
+  console.log('Server received movies:', movies);
 
   const openai = new OpenAI({
     baseURL: 'https://openrouter.ai/api/v1',
@@ -48,16 +48,15 @@ export async function handler(event) {
         },
         {
           role: 'user',
-          content: `Movie: "${movieTitle}"\nUser1 rating: ${user1Rating}/5\nUser2 rating: ${user2Rating}/5`,
+          content: JSON.stringify(movies),
         },
       ],
       response_format: { type: 'json_object' },
       model: LLM_MODEL,
     });
 
-    // Parse the response content into an object
-    const responseObject = JSON.parse(completion.choices[0].message.content);
-
+    const responseArray = JSON.parse(completion.choices[0].message.content);
+    console.log('LLM response:', responseArray);
     return {
       statusCode: 200,
       headers: {
@@ -70,11 +69,7 @@ export async function handler(event) {
         // Optional cache tags for selective purging
         'Netlify-Cache-Tag': 'llm-movie-quips',
       },
-      body: JSON.stringify({
-        user1Response: responseObject.user1Response,
-        user2Response: responseObject.user2Response,
-        debug: 'API call successful',
-      }),
+      body: JSON.stringify(responseArray),
     };
   } catch (error) {
     console.error('OpenAI API Error:', error);
