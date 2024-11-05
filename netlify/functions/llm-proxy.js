@@ -3,22 +3,26 @@ import dotenv from 'dotenv';
 import process from 'process';
 import { movieQuipPrompt } from '../../prompts/movieQuipPrompt.js';
 
+const LLM_MODEL = 'anthropic/claude-3-5-haiku';
+const SITE_URL = 'https://letterboxdvs.com';
+const SITE_NAME = 'Letterboxd VS.';
+
 export async function handler(event) {
   dotenv.config();
-  const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+  const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
-  if (!OPENAI_API_KEY) {
-    console.error('Missing OpenAI API Key');
+  if (!OPENROUTER_API_KEY) {
+    console.error('Missing OpenRouter API Key');
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Server configuration error' })
+      body: JSON.stringify({ error: 'Server configuration error' }),
     };
   }
 
   if (!event.body) {
     return {
       statusCode: 400,
-      body: JSON.stringify({ error: "No data provided to LLM proxy" }),
+      body: JSON.stringify({ error: 'No data provided to LLM proxy' }),
     };
   }
 
@@ -27,23 +31,28 @@ export async function handler(event) {
   console.log('Server received data:', { user1Rating, user2Rating, movieTitle });
 
   const openai = new OpenAI({
-    apiKey: OPENAI_API_KEY,
+    baseURL: 'https://openrouter.ai/api/v1',
+    apiKey: OPENROUTER_API_KEY,
+    defaultHeaders: {
+      'HTTP-Referer': SITE_URL,
+      'X-Title': SITE_NAME,
+    },
   });
 
   try {
     const completion = await openai.chat.completions.create({
       messages: [
         {
-          role: "system",
-          content: movieQuipPrompt
+          role: 'system',
+          content: movieQuipPrompt,
         },
         {
-          role: "user",
-          content: `Movie: "${movieTitle}"\nUser1 rating: ${user1Rating}/5\nUser2 rating: ${user2Rating}/5`
-        }
+          role: 'user',
+          content: `Movie: "${movieTitle}"\nUser1 rating: ${user1Rating}/5\nUser2 rating: ${user2Rating}/5`,
+        },
       ],
-      response_format: { "type": "json_object" },
-      model: "gpt-4o-mini"
+      response_format: { type: 'json_object' },
+      model: LLM_MODEL,
     });
 
     // Parse the response content into an object
@@ -55,25 +64,26 @@ export async function handler(event) {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
         // Allow Netlify to cache responses
-        'Netlify-CDN-Cache-Control': `public, s-maxage=${60*60*24}, stale-while-revalidate=${60*60*48}, durable`,
+        'Netlify-CDN-Cache-Control': `public, s-maxage=${60 * 60 * 24}, stale-while-revalidate=${
+          60 * 60 * 48
+        }, durable`,
         // Optional cache tags for selective purging
-        'Netlify-Cache-Tag': 'llm-movie-quips'
+        'Netlify-Cache-Tag': 'llm-movie-quips',
       },
       body: JSON.stringify({
         user1Response: responseObject.user1Response,
         user2Response: responseObject.user2Response,
-        debug: 'API call successful'
-      })
+        debug: 'API call successful',
+      }),
     };
-
   } catch (error) {
     console.error('OpenAI API Error:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         error: 'Failed to generate message',
-        details: error.message 
-      })
+        details: error.message,
+      }),
     };
   }
 }
