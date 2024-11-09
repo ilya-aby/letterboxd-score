@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Loader2 } from 'lucide-react';
-import { ChevronLeft } from 'lucide-react';
+import { Loader2, AlertCircle, ChevronLeft } from 'lucide-react';
 import { getUserStats, getRatingDisagreements } from './utils/movieAnalytics';
 import MessageBubble from './components/MessageBubble';
 import posterPlaceholder from './assets/poster-placeholder.png';
@@ -92,11 +91,13 @@ export default function App() {
       >
         <div className='flex flex-col items-end self-start sm:self-auto'>
           <div className='text-sm sm:text-base'>{getRatingSymbol(disagreement.user1Rating)}</div>
-          <MessageBubble
-            message={disagreement.user1DissMessage}
-            isYours={false}
-            bgColor='bg-gray-900'
-          />
+          {disagreement.user1DissMessage && (
+            <MessageBubble
+              message={disagreement.user1DissMessage}
+              isYours={false}
+              bgColor='bg-gray-900'
+            />
+          )}
         </div>
         <a
           href={disagreement.letterboxdUrl}
@@ -116,11 +117,13 @@ export default function App() {
         </a>
         <div className='flex flex-col items-start self-end sm:self-auto'>
           <div className='text-sm sm:text-base'>{getRatingSymbol(disagreement.user2Rating)}</div>
-          <MessageBubble
-            message={disagreement.user2DissMessage}
-            isYours={true}
-            bgColor='bg-gray-900'
-          />
+          {disagreement.user2DissMessage && (
+            <MessageBubble
+              message={disagreement.user2DissMessage}
+              isYours={true}
+              bgColor='bg-gray-900'
+            />
+          )}
         </div>
       </div>
     ));
@@ -136,7 +139,9 @@ export default function App() {
       <div className='relative flex flex-col items-center justify-center w-full mx-auto px-4 py-10 shadow-xl bg-gray-900 text-gray-100 max-w-4xl min-h-screen sm:mx-4 sm:rounded-xl sm:min-h-[80vh] sm:overflow-hidden'>
         {appState !== AppStates.COMPARE && (
           <>
-            <p className='text-gray-100 font-bold text-2xl mb-4 absolute top-8 left-8 z-10'>Letterboxd VS.</p>
+            <p className='text-gray-100 font-bold text-2xl mb-4 absolute top-8 left-8 z-10'>
+              Letterboxd VS.
+            </p>
             <img
               src={bannerImage}
               alt='Letterboxd VS.'
@@ -199,7 +204,10 @@ export default function App() {
         )}
 
         {appState === AppStates.ERROR && (
-          <p className='text-red-500 text-sm mt-2 font-bold'>{error}</p>
+          <p className='flex items-center text-red-500 bg-red-200 px-4 py-2 drop-shadow-lg text-md mt-4 font-bold z-10'>
+            <AlertCircle className='size-4 inline-block mr-2' />
+            {error}
+          </p>
         )}
         {appState === AppStates.COMPARE && (
           <>

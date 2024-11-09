@@ -82,6 +82,11 @@ export async function getRatingDisagreements(user1, user2) {
 
   const quipsArray = await response.json();
 
+  if (!quipsArray || quipsArray.error) {
+    console.error('Error fetching quips from LLM:', quipsArray.error);
+    return topDisagreements;
+  }
+
   // Match the responses back to the disagreements
   quipsArray.forEach((quip, index) => {
     topDisagreements[index].user1DissMessage = quip.user1Response;
